@@ -31,6 +31,8 @@ app.UseStaticFiles(new StaticFileOptions()
     }
 });
 
+app.UseRouting();
+
 app.MapControllerRoute("default", "{controller}/{action}");
 
 app.Run();

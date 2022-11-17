@@ -28,7 +28,7 @@ namespace VZCloud.Controllers
             {
                 return BadRequest("Укажите путь к файлу");
             }
-            model.Path = $"{_environment.WebRootPath}\\storage\\{model.Path}";
+            model.Path = $"{_environment.WebRootPath}/storage/{model.Path}";
             if (System.IO.File.Exists(model.Path))
             {
                 return StatusCode(406);
@@ -47,7 +47,6 @@ namespace VZCloud.Controllers
         #endregion
 
         #region CreateDirectory
-        //TESTED
         [HttpPost]
         public IActionResult CreateDirectory([FromBody] string path)
         {
@@ -63,8 +62,11 @@ namespace VZCloud.Controllers
                     values = new Dictionary<string, string>();
                 }
             }
-            path = values["path"].Replace('/', '\\');
-            string dirPath = $"{_environment.WebRootPath}\\storage\\{path}";
+            if (!values.ContainsKey("path"))
+            {
+                return BadRequest();
+            }
+            string dirPath = $"{_environment.WebRootPath}/storage/{values["path"]}";
             if (System.IO.Directory.Exists(dirPath))
             {
                 return StatusCode(406);
@@ -74,9 +76,8 @@ namespace VZCloud.Controllers
         }
         #endregion
 
-        #region
+        #region Directory
         [HttpPost]
-        //TESTED
         public IActionResult Directory([FromBody] string path)
         {
             Dictionary<string, string>? values = null;
@@ -95,8 +96,8 @@ namespace VZCloud.Controllers
             {
                 return BadRequest();
             }
-            path = values["path"].Replace('/', '\\');
-            string dirPath = $"{_environment.WebRootPath}\\storage\\{path}";
+            path = values["path"];
+            string dirPath = $"{_environment.WebRootPath}/storage/{path}";
             return Ok(new Dictionary<string, object>
             {
                 { "Folders", System.IO.Directory.GetDirectories(dirPath).Select(x=>Path.GetFileName(x)).ToArray() },
@@ -106,7 +107,6 @@ namespace VZCloud.Controllers
         #endregion
 
         #region File
-        //TESTED
         [HttpPost]
         public IActionResult File([FromBody] string path)
         {
@@ -122,8 +122,12 @@ namespace VZCloud.Controllers
                     values = new Dictionary<string, string>();
                 }
             }
-            path = values["path"].Replace('/', '\\');
-            string filePath = $"{_environment.WebRootPath}\\storage\\{path}";
+            if (!values.ContainsKey("path"))
+            {
+                return BadRequest();
+            }
+            path = values["path"];
+            string filePath = $"{_environment.WebRootPath}/storage/{path}";
             if (!System.IO.File.Exists(filePath))
             {
                 return NotFound();
