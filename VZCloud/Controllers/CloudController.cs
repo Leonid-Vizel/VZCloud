@@ -22,22 +22,18 @@ namespace VZCloud.Controllers
             }
             if (model.Bytes == null)
             {
-                return BadRequest("Укажите наполнение файла");
+                return BadRequest("Укажите наполнение файла!");
             }
             if (model.Path == null)
             {
-                return BadRequest("Укажите путь к файлу");
+                return BadRequest("Укажите путь к файлу!");
             }
             model.Path = $"{_environment.WebRootPath}/storage/{model.Path}";
             if (System.IO.File.Exists(model.Path))
             {
-                return StatusCode(406);
-            }
-            if (System.IO.File.Exists(model.Path))
-            {
                 if (!model.Rewrite)
                 {
-                    return Forbid();
+                    return Forbid("Такой файл уже существует. Если хотите его перезаписать задайте параметр \"Rewrite\" : true");
                 }
                 System.IO.File.Delete(model.Path);
             }
@@ -64,12 +60,12 @@ namespace VZCloud.Controllers
             }
             if (!values.ContainsKey("path"))
             {
-                return BadRequest();
+                return BadRequest("Укажите путь к новой папке!");
             }
             string dirPath = $"{_environment.WebRootPath}/storage/{values["path"]}";
             if (System.IO.Directory.Exists(dirPath))
             {
-                return StatusCode(406);
+                return StatusCode(406, "Такая папка уже существует!");
             }
             System.IO.Directory.CreateDirectory(dirPath);
             return Ok();
@@ -94,10 +90,14 @@ namespace VZCloud.Controllers
             }
             if (!values.ContainsKey("path"))
             {
-                return BadRequest();
+                return BadRequest("Укажите путь к папке!");
             }
             path = values["path"];
             string dirPath = $"{_environment.WebRootPath}/storage/{path}";
+            if (!System.IO.Directory.Exists(dirPath))
+            {
+                return NotFound("Папка не нейдена!");
+            }
             return Ok(new Dictionary<string, object>
             {
                 { "Folders", System.IO.Directory.GetDirectories(dirPath).Select(x=>Path.GetFileName(x)).ToArray() },
@@ -124,13 +124,13 @@ namespace VZCloud.Controllers
             }
             if (!values.ContainsKey("path"))
             {
-                return BadRequest();
+                return BadRequest("Укажите путь к файлу!");
             }
             path = values["path"];
             string filePath = $"{_environment.WebRootPath}/storage/{path}";
             if (!System.IO.File.Exists(filePath))
             {
-                return NotFound();
+                return NotFound("Файл не найден!");
             }
             FileExtensionContentTypeProvider provider = new FileExtensionContentTypeProvider();
             string contentType;
