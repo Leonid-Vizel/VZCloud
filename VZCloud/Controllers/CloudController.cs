@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
-using System.Text.Json;
 using VZCloud.Models;
 
 namespace VZCloud.Controllers
@@ -44,25 +43,13 @@ namespace VZCloud.Controllers
 
         #region CreateDirectory
         [HttpPost]
-        public IActionResult CreateDirectory([FromBody] string path)
+        public IActionResult CreateDirectory([FromBody] PathInputModel model)
         {
-            Dictionary<string, string>? values = null;
-            try
+            if (model == null || model.Path == null)
             {
-                values = JsonSerializer.Deserialize<Dictionary<string, string>>(path);
+                return BadRequest("Укажите путь!");
             }
-            finally
-            {
-                if (values == null)
-                {
-                    values = new Dictionary<string, string>();
-                }
-            }
-            if (!values.ContainsKey("path"))
-            {
-                return BadRequest("Укажите путь к новой папке!");
-            }
-            string dirPath = $"{_environment.WebRootPath}/storage/{values["path"]}";
+            string dirPath = $"{_environment.WebRootPath}/storage/{model.Path}";
             if (System.IO.Directory.Exists(dirPath))
             {
                 return StatusCode(406, "Такая папка уже существует!");
@@ -74,29 +61,16 @@ namespace VZCloud.Controllers
 
         #region Directory
         [HttpPost]
-        public IActionResult Directory([FromBody] string path)
+        public IActionResult Directory([FromBody] PathInputModel model)
         {
-            Dictionary<string, string>? values = null;
-            try
+            if (model == null || model.Path == null)
             {
-                values = JsonSerializer.Deserialize<Dictionary<string, string>>(path);
+                return BadRequest("Укажите путь!");
             }
-            finally
-            {
-                if (values == null)
-                {
-                    values = new Dictionary<string, string>();
-                }
-            }
-            if (!values.ContainsKey("path"))
-            {
-                return BadRequest("Укажите путь к папке!");
-            }
-            path = values["path"];
-            string dirPath = $"{_environment.WebRootPath}/storage/{path}";
+            string dirPath = $"{_environment.WebRootPath}/storage/{model.Path}";
             if (!System.IO.Directory.Exists(dirPath))
             {
-                return NotFound("Папка не нейдена!");
+                return NotFound("Папка не найдена!");
             }
             return Ok(new Dictionary<string, object>
             {
@@ -108,33 +82,20 @@ namespace VZCloud.Controllers
 
         #region File
         [HttpPost]
-        public IActionResult File([FromBody] string path)
+        public IActionResult File([FromBody] PathInputModel model)
         {
-            Dictionary<string, string>? values = null;
-            try
+            if (model == null || model.Path == null)
             {
-                values = JsonSerializer.Deserialize<Dictionary<string, string>>(path);
+                return BadRequest("Укажите путь!");
             }
-            finally
-            {
-                if (values == null)
-                {
-                    values = new Dictionary<string, string>();
-                }
-            }
-            if (!values.ContainsKey("path"))
-            {
-                return BadRequest("Укажите путь к файлу!");
-            }
-            path = values["path"];
-            string filePath = $"{_environment.WebRootPath}/storage/{path}";
+            string filePath = $"{_environment.WebRootPath}/storage/{model.Path}";
             if (!System.IO.File.Exists(filePath))
             {
                 return NotFound("Файл не найден!");
             }
             FileExtensionContentTypeProvider provider = new FileExtensionContentTypeProvider();
             string contentType;
-            if (!provider.TryGetContentType(path, out contentType))
+            if (!provider.TryGetContentType(model.Path, out contentType))
             {
                 contentType = "text/plain";
             }
